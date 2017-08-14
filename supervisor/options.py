@@ -877,6 +877,7 @@ class ServerOptions(Options):
         startretries = integer(get(section, 'startretries', 3))
         stopsignal = signal_number(get(section, 'stopsignal', 'TERM'))
         stopwaitsecs = integer(get(section, 'stopwaitsecs', 10))
+        kill_after_wait = boolean(get(section, 'kill_after_wait', 'true'))
         stopasgroup = boolean(get(section, 'stopasgroup', 'false'))
         killasgroup = boolean(get(section, 'killasgroup', stopasgroup))
         exitcodes = list_of_exitcodes(get(section, 'exitcodes', '0,2'))
@@ -998,6 +999,7 @@ class ServerOptions(Options):
                 stderr_syslog=logfiles['stderr_syslog'],
                 stopsignal=stopsignal,
                 stopwaitsecs=stopwaitsecs,
+                kill_after_wait=kill_after_wait,
                 stopasgroup=stopasgroup,
                 killasgroup=killasgroup,
                 exitcodes=exitcodes,
@@ -1813,8 +1815,8 @@ class ProcessConfig(Config):
         'stderr_logfile', 'stderr_capture_maxbytes',
         'stderr_logfile_backups', 'stderr_logfile_maxbytes',
         'stderr_events_enabled', 'stderr_syslog',
-        'stopsignal', 'stopwaitsecs', 'stopasgroup', 'killasgroup',
-        'exitcodes', 'redirect_stderr' ]
+        'stopsignal', 'stopwaitsecs', 'kill_after_wait', 'stopasgroup',
+        'killasgroup', 'exitcodes', 'redirect_stderr' ]
     optional_param_names = [ 'environment', 'serverurl' ]
 
     def __init__(self, options, **params):

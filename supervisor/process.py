@@ -539,7 +539,7 @@ class Subprocess(object):
             if self.state == ProcessStates.STARTING:
                 self.change_state(ProcessStates.RUNNING)
 
-            self._assertInState(ProcessStates.RUNNING)
+            self._assertInState(ProcessStates.RUNNING, ProcessStates.FATAL)
 
             if exit_expected:
                 # expected exit code
@@ -642,13 +642,22 @@ class Subprocess(object):
         elif state == ProcessStates.STOPPING:
             time_left = self.delay - now
             if time_left <= 0:
-                # kill processes which are taking too long to stop with a final
-                # sigkill.  if this doesn't kill it, the process will be stuck
-                # in the STOPPING state forever.
-                self.config.options.logger.warn(
-                    'killing %r (%s) with SIGKILL' % (self.config.name,
-                                                      self.pid))
-                self.kill(signal.SIGKILL)
+                if self.config.kill_after_wait:
+                    # kill processes which are taking too long to stop with a
+                    # final sigkill. if this doesn't kill it, the process will
+                    # be stuck in the STOPPING state forever.
+                    self.config.options.logger.warn(
+                        'killing %r (%s) with SIGKILL' % (self.config.name,
+                                                          self.pid))
+                    self.kill(signal.SIGKILL)
+                else:
+                    self.killing = False
+                    self.system_stop = False
+                    self.spawnerr = "pid %s, Can't stop process" % self.pid
+                    self.change_state(ProcessStates.FATAL)
+                    msg = ("process didn't stop after 'stopwaitsec' timeout "
+                           "exceeded and 'kill_after_wait' is False")
+                    logger.critical('gave up: %s %s' % (self.config.name, msg))
 
 class FastCGISubprocess(Subprocess):
     """Extends Subprocess class to handle FastCGI subprocesses"""
